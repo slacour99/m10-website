@@ -8,7 +8,7 @@ toc: false
 <section class="hero-section">
   <div style="max-width:900px; margin:0 auto; display:flex; align-items:center; gap:3rem; flex-wrap:wrap;">
     <div>
-      <div class="profile-placeholder">myphoto.jpeg</div>
+      <div class="profile-placeholder">![](myphoto.jpeg){width=200px}</div>
     </div>
     <div style="flex:1; min-width:280px;">
       <h1>Shayah LaCour</h1>
