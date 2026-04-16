@@ -8,14 +8,16 @@ toc: false
 <section class="hero-section">
   <div style="max-width:900px; margin:0 auto; display:flex; align-items:center; gap:3rem; flex-wrap:wrap;">
     <div>
-      <div class="profile-placeholder">![](myphoto.jpeg){width=200px}</div>
+      <div class="profile-placeholder">
+  <img src="myphoto.jpeg" alt="Shayah LaCour" style="width:200px; height:200px; object-fit:cover; border-radius:50%;">
+</div>
     </div>
     <div style="flex:1; min-width:280px;">
       <h1>Shayah LaCour</h1>
       <p class="hero-subtitle">Marketing Analytics · Social Media </p>
       <p class="hero-tagline">"Turning messy data into decisions that matter."</p>
       <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-        <a href="dashboard.qmd" style="background:#E8825A; color:white; padding:0.6rem 1.4rem; border-radius:2rem; font-weight:500; font-size:0.9rem; text-decoration:none;">View Dashboard →</a>
+        <a href="dashboard.html" style="background:#E8825A; color:white; padding:0.6rem 1.4rem; border-radius:2rem; font-weight:500; font-size:0.9rem; text-decoration:none;">View Dashboard →</a>
         <a href="#about" style="background:rgba(255,255,255,0.15); color:white; padding:0.6rem 1.4rem; border-radius:2rem; font-weight:500; font-size:0.9rem; text-decoration:none; border:1px solid rgba(255,255,255,0.3);">About Me</a>
       </div>
     </div>
