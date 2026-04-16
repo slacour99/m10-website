@@ -1,0 +1,42 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Shayah LaCour"
+  favicon: "assets/favicon.ico"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: dashboard.qmd
+        text: Dashboard
+      - href: shiny-essay.qmd
+        text: Shiny Apps
+      - href: shinylive-essay.qmd
+        text: Shinylive
+    right:
+      - icon: github
+        href: https://github.com/slacour2319
+        aria-label: GitHub
+  page-footer:
+    center: "© 2025 Shayah LaCour · Built with [Quarto](https://quarto.org)"
+    background: dark
+
+format:
+  html:
+    theme:
+      light: [flatly, custom.scss]
+    toc: true
+    toc-depth: 3
+    smooth-scroll: true
+    link-external-icon: false
+    link-external-newwindow: true
+    code-fold: true
+    code-summary: "Show code"
+    df-print: paged
+
+execute:
+  warning: false
+  message: false
+  echo: true

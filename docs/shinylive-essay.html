@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Shayah LaCour">
+<meta name="dcterms.date" content="2026-04-15">
+
+<title>Shinylive: Serverless Shiny in the Browser – Shayah LaCour</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./assets/favicon.ico" rel="icon">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-3db6c18bb69885e7f25697a9383847b5.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-14fe05e12cedcce55ed5a2657bbd119a.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<style>html{ scroll-behavior: smooth; }</style>
+
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Shayah LaCour</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./dashboard.html"> 
+<span class="menu-text">Dashboard</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./shiny-essay.html"> 
+<span class="menu-text">Shiny Apps</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./shinylive-essay.html" aria-current="page"> 
+<span class="menu-text">Shinylive</span></a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/slacour2319"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Contents</h2>
+   
+  <ul>
+  <li><a href="#the-traditional-problem" id="toc-the-traditional-problem" class="nav-link active" data-scroll-target="#the-traditional-problem">The Traditional Problem</a></li>
+  <li><a href="#what-is-shinylive" id="toc-what-is-shinylive" class="nav-link" data-scroll-target="#what-is-shinylive">What is Shinylive?</a></li>
+  <li><a href="#how-shinylive-works-architecturally" id="toc-how-shinylive-works-architecturally" class="nav-link" data-scroll-target="#how-shinylive-works-architecturally">How Shinylive Works Architecturally</a>
+  <ul class="collapse">
+  <li><a href="#traditional-shiny" id="toc-traditional-shiny" class="nav-link" data-scroll-target="#traditional-shiny">Traditional Shiny</a></li>
+  <li><a href="#shinylive" id="toc-shinylive" class="nav-link" data-scroll-target="#shinylive">Shinylive</a></li>
+  </ul></li>
+  <li><a href="#setting-up-shinylive-in-quarto" id="toc-setting-up-shinylive-in-quarto" class="nav-link" data-scroll-target="#setting-up-shinylive-in-quarto">Setting Up Shinylive in Quarto</a>
+  <ul class="collapse">
+  <li><a href="#step-1-install-the-extension" id="toc-step-1-install-the-extension" class="nav-link" data-scroll-target="#step-1-install-the-extension">Step 1: Install the extension</a></li>
+  <li><a href="#step-2-add-the-filter-to-your-yaml" id="toc-step-2-add-the-filter-to-your-yaml" class="nav-link" data-scroll-target="#step-2-add-the-filter-to-your-yaml">Step 2: Add the filter to your YAML</a></li>
+  <li><a href="#step-3-write-a-shinylive-r-code-block" id="toc-step-3-write-a-shinylive-r-code-block" class="nav-link" data-scroll-target="#step-3-write-a-shinylive-r-code-block">Step 3: Write a <code>{shinylive-r}</code> code block</a></li>
+  </ul></li>
+  <li><a href="#a-realistic-shinylive-example" id="toc-a-realistic-shinylive-example" class="nav-link" data-scroll-target="#a-realistic-shinylive-example">A Realistic Shinylive Example</a></li>
+  <li><a href="#shinylive-vs-traditional-shiny-full-comparison" id="toc-shinylive-vs-traditional-shiny-full-comparison" class="nav-link" data-scroll-target="#shinylive-vs-traditional-shiny-full-comparison">Shinylive vs Traditional Shiny: Full Comparison</a></li>
+  <li><a href="#strengths-of-shinylive" id="toc-strengths-of-shinylive" class="nav-link" data-scroll-target="#strengths-of-shinylive">Strengths of Shinylive</a>
+  <ul class="collapse">
+  <li><a href="#zero-infrastructure-cost" id="toc-zero-infrastructure-cost" class="nav-link" data-scroll-target="#zero-infrastructure-cost">1. Zero infrastructure cost</a></li>
+  <li><a href="#perfect-for-embedding-in-quarto-documents" id="toc-perfect-for-embedding-in-quarto-documents" class="nav-link" data-scroll-target="#perfect-for-embedding-in-quarto-documents">2. Perfect for embedding in Quarto documents</a></li>
+  <li><a href="#data-privacy-by-design" id="toc-data-privacy-by-design" class="nav-link" data-scroll-target="#data-privacy-by-design">3. Data privacy by design</a></li>
+  <li><a href="#infinite-scale" id="toc-infinite-scale" class="nav-link" data-scroll-target="#infinite-scale">4. Infinite scale</a></li>
+  </ul></li>
+  <li><a href="#weaknesses-of-shinylive" id="toc-weaknesses-of-shinylive" class="nav-link" data-scroll-target="#weaknesses-of-shinylive">Weaknesses of Shinylive</a>
+  <ul class="collapse">
+  <li><a href="#slow-initial-load" id="toc-slow-initial-load" class="nav-link" data-scroll-target="#slow-initial-load">1. Slow initial load</a></li>
+  <li><a href="#limited-package-support" id="toc-limited-package-support" class="nav-link" data-scroll-target="#limited-package-support">2. Limited package support</a></li>
+  <li><a href="#no-server-side-resources" id="toc-no-server-side-resources" class="nav-link" data-scroll-target="#no-server-side-resources">3. No server-side resources</a></li>
+  <li><a href="#slower-computation" id="toc-slower-computation" class="nav-link" data-scroll-target="#slower-computation">4. Slower computation</a></li>
+  </ul></li>
+  <li><a href="#when-to-choose-which" id="toc-when-to-choose-which" class="nav-link" data-scroll-target="#when-to-choose-which">When to Choose Which</a></li>
+  <li><a href="#the-bigger-picture-webassembly-in-data-science" id="toc-the-bigger-picture-webassembly-in-data-science" class="nav-link" data-scroll-target="#the-bigger-picture-webassembly-in-data-science">The Bigger Picture: WebAssembly in Data Science</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Shinylive: Serverless Shiny in the Browser</h1>
+<p class="subtitle lead">What it is, how it works, and when to use it</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Shayah LaCour </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">April 15, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="essay-header">
+  <h1>🌐 Shinylive: Shiny Without a Server</h1>
+  <p>How WebAssembly makes it possible to run R in your browser — and why that changes everything</p>
+</div>
+<section id="the-traditional-problem" class="level2">
+<h2 class="anchored" data-anchor-id="the-traditional-problem">The Traditional Problem</h2>
+<p>Every Shiny app you’ve built so far has a fundamental constraint: <strong>it needs a live R process running somewhere</strong>. When a user moves a slider, their browser sends a message to that R process, R re-runs the relevant code, and the result travels back. The browser is just a display terminal.</p>
+<p>This is powerful — it means the full power of R and all its packages is available — but it creates friction:</p>
+<ul>
+<li>You need a server (your own laptop, shinyapps.io, Posit Connect…)</li>
+<li>Someone has to pay for that server</li>
+<li>The app goes offline if the server does</li>
+<li>Sharing becomes a deployment problem, not just a files problem</li>
+</ul>
+<p><strong>Shinylive solves this by making the server disappear entirely.</strong></p>
+<hr>
+</section>
+<section id="what-is-shinylive" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-shinylive">What is Shinylive?</h2>
+<p>Shinylive is a version of Shiny that runs <strong>entirely inside the user’s web browser</strong> using <strong>WebAssembly (Wasm)</strong>. There is no R server. R itself — the interpreter, the packages, everything — runs locally in the browser using a technology called <a href="https://docs.r-wasm.org/webr/latest/">webR</a>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>WebAssembly in plain language
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>WebAssembly is a low-level binary format that modern browsers can execute at near-native speed. Originally designed for C and C++ programs, it has been extended to run other languages — including R. The R interpreter has been compiled to Wasm and is distributed as a downloadable bundle. When a Shinylive app loads in your browser, it downloads that R bundle and starts executing your app code directly.</p>
+</div>
+</div>
+<p>The result: a Shiny app that lives as a collection of static files (HTML, CSS, JS, Wasm blobs). You can host it on GitHub Pages, Netlify, any CDN — anywhere that can serve static files. No R process, no server management.</p>
+<hr>
+</section>
+<section id="how-shinylive-works-architecturally" class="level2">
+<h2 class="anchored" data-anchor-id="how-shinylive-works-architecturally">How Shinylive Works Architecturally</h2>
+<p>Here is a side-by-side comparison of the two architectures:</p>
+<section id="traditional-shiny" class="level3">
+<h3 class="anchored" data-anchor-id="traditional-shiny">Traditional Shiny</h3>
+<pre><code>User browser  ──── HTTP request ────►  R Server
+              ◄── rendered output ───  (Shiny running in R process)
+                                       (input → reactive graph → output)</code></pre>
+<p>The browser is a thin client. All computation happens server-side.</p>
+</section>
+<section id="shinylive" class="level3">
+<h3 class="anchored" data-anchor-id="shinylive">Shinylive</h3>
+<pre><code>User browser  ──── loads static files ────►  CDN / GitHub Pages / Netlify
+              ◄──── HTML + JS + Wasm ──────  (no R process exists)
+              
+              [Browser now contains webR + your app code]
+              [input → reactive graph → output all happen locally]</code></pre>
+<p>The browser is the entire compute environment. The CDN just serves files.</p>
+<hr>
+</section>
+</section>
+<section id="setting-up-shinylive-in-quarto" class="level2">
+<h2 class="anchored" data-anchor-id="setting-up-shinylive-in-quarto">Setting Up Shinylive in Quarto</h2>
+<p>You don’t need to install a separate package to use Shinylive in a Quarto document — you use the <code>shinylive</code> Quarto extension.</p>
+<section id="step-1-install-the-extension" class="level3">
+<h3 class="anchored" data-anchor-id="step-1-install-the-extension">Step 1: Install the extension</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run in your terminal from your project folder</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">quarto</span> add quarto-ext/shinylive</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This adds an <code>_extensions/</code> folder to your project.</p>
+</section>
+<section id="step-2-add-the-filter-to-your-yaml" class="level3">
+<h3 class="anchored" data-anchor-id="step-2-add-the-filter-to-your-yaml">Step 2: Add the filter to your YAML</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"My Shinylive Document"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> html</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">filters</span><span class="kw">:</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> shinylive</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="step-3-write-a-shinylive-r-code-block" class="level3">
+<h3 class="anchored" data-anchor-id="step-3-write-a-shinylive-r-code-block">Step 3: Write a <code>{shinylive-r}</code> code block</h3>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{shinylive-r}</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| standalone: true</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="ex">library</span><span class="er">(</span><span class="ex">shiny</span><span class="kw">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="ex">ui</span> <span class="op">&lt;</span>- fluidPage<span class="er">(</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">sliderInput</span><span class="er">(</span><span class="st">"n"</span><span class="ex">,</span> <span class="st">"Number"</span>, 1, 100, 50<span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="ex">textOutput</span><span class="er">(</span><span class="st">"result"</span><span class="kw">)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="kw">)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="ex">server</span> <span class="op">&lt;</span>- function<span class="er">(</span><span class="ex">input,</span> output<span class="kw">)</span> <span class="kw">{</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="ex">output</span><span class="va">$result</span> <span class="op">&lt;</span>- renderText<span class="er">(</span><span class="fu">paste</span><span class="er">(</span><span class="st">"Value:"</span><span class="ex">,</span> input<span class="va">$n</span><span class="kw">))</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="ex">shinyApp</span><span class="er">(</span><span class="ex">ui,</span> server<span class="kw">)</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>When Quarto renders this document, it packages the app code and the webR runtime together. The resulting HTML file is fully self-contained — the Shiny app runs when anyone opens it.</p>
+<hr>
+</section>
+</section>
+<section id="a-realistic-shinylive-example" class="level2">
+<h2 class="anchored" data-anchor-id="a-realistic-shinylive-example">A Realistic Shinylive Example</h2>
+<p>Here is a more complete example of a Shinylive app embedded in a Quarto document. This could sit in one of your dashboard or report pages and work for any reader without any server:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{shinylive-r}</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| standalone: true</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#| viewerHeight: 500</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="ex">library</span><span class="er">(</span><span class="ex">shiny</span><span class="kw">)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="ex">library</span><span class="er">(</span><span class="ex">ggplot2</span><span class="kw">)</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="ex">channels</span> <span class="op">&lt;</span>- c<span class="er">(</span><span class="st">"Mobile"</span><span class="ex">,</span> <span class="st">"Paid Search"</span>, <span class="st">"Affiliate"</span>, <span class="st">"Social Media"</span><span class="kw">)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="ex">attr_df</span> <span class="op">&lt;</span>- data.frame<span class="er">(</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>  <span class="ex">channel</span> = rep<span class="er">(</span><span class="ex">channels,</span> 3<span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="ex">model</span>   = rep<span class="er">(</span><span class="ex">c</span><span class="er">(</span><span class="st">"First Touch"</span><span class="ex">,</span> <span class="st">"Last Touch"</span>, <span class="st">"Markov"</span><span class="kw">)</span><span class="ex">,</span> each = 4<span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="ex">credits</span> = c<span class="er">(</span><span class="ex">21,</span> 34, 17, 10,</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>              <span class="ex">26,</span> 15, 18,  8,</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>              <span class="ex">21,</span> 20, 20, 21<span class="kw">)</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="kw">)</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="ex">ui</span> <span class="op">&lt;</span>- fluidPage<span class="er">(</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="ex">titlePanel</span><span class="er">(</span><span class="st">"Interactive Attribution Explorer"</span><span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">sidebarLayout</span><span class="er">(</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sidebarPanel</span><span class="er">(</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>      <span class="ex">checkboxGroupInput</span><span class="er">(</span><span class="st">"models"</span><span class="ex">,</span> <span class="st">"Show models:"</span>,</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                         <span class="ex">choices</span>  = unique<span class="er">(</span><span class="ex">attr_df</span><span class="va">$model</span><span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                         <span class="ex">selected</span> = unique<span class="er">(</span><span class="ex">attr_df</span><span class="va">$model</span><span class="kw">))</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">)</span><span class="ex">,</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    <span class="ex">mainPanel</span><span class="er">(</span><span class="ex">plotOutput</span><span class="er">(</span><span class="st">"p"</span><span class="kw">))</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">)</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="kw">)</span></span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a><span class="ex">server</span> <span class="op">&lt;</span>- function<span class="er">(</span><span class="ex">input,</span> output<span class="kw">)</span> <span class="kw">{</span></span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>  <span class="ex">output</span><span class="va">$p</span> <span class="op">&lt;</span>- renderPlot<span class="er">(</span><span class="kw">{</span></span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>    <span class="ex">sub</span> <span class="op">&lt;</span>- attr_df[attr_df<span class="va">$model</span> %in% input<span class="va">$models</span>, ]</span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>    <span class="ex">ggplot</span><span class="er">(</span><span class="ex">sub,</span> aes<span class="er">(</span><span class="ex">channel,</span> credits, fill = model<span class="kw">))</span> <span class="ex">+</span></span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>      <span class="ex">geom_col</span><span class="er">(</span><span class="ex">position</span> = <span class="st">"dodge"</span><span class="kw">)</span> <span class="ex">+</span></span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>      <span class="ex">theme_minimal</span><span class="er">(</span><span class="ex">base_size</span> = 14<span class="kw">)</span> <span class="ex">+</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>      <span class="ex">labs</span><span class="er">(</span><span class="ex">x</span> = NULL, y = <span class="st">"Credits"</span>, fill = NULL<span class="kw">)</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">})</span></span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a><span class="kw">}</span></span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="ex">shinyApp</span><span class="er">(</span><span class="ex">ui,</span> server<span class="kw">)</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>The <code>standalone: true</code> option
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>This tells Shinylive that the code block contains a complete, self-contained app (with its own <code>shinyApp()</code> call), rather than just a fragment. Always include this for full apps.</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="shinylive-vs-traditional-shiny-full-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="shinylive-vs-traditional-shiny-full-comparison">Shinylive vs Traditional Shiny: Full Comparison</h2>
+<table class="comparison-table caption-top table">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th" style="text-align: left; padding: 0.75rem 1rem;">Dimension</th>
+<th data-quarto-table-cell-role="th" style="text-align: left; padding: 0.75rem 1rem;">Traditional Shiny</th>
+<th data-quarto-table-cell-role="th" style="text-align: left; padding: 0.75rem 1rem;">Shinylive</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>Where R runs</strong></td>
+<td>Server (your machine, shinyapps.io, Posit Connect)</td>
+<td>User's browser (via WebAssembly)</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Hosting requirement</strong></td>
+<td>Live R process required</td>
+<td>Any static file host (GitHub Pages, Netlify, CDN)</td>
+</tr>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>Cost to host</strong></td>
+<td>Free tier limited; paid plans for scale</td>
+<td>Free (static hosting is cheap or free)</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Initial load time</strong></td>
+<td>Fast (server already has R)</td>
+<td>Slower — browser must download webR runtime (~5–20 MB)</td>
+</tr>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>Computation speed</strong></td>
+<td>Fast (server-grade hardware)</td>
+<td>Slower (WebAssembly has overhead vs native)</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Data privacy</strong></td>
+<td>Data sent to server (must secure server)</td>
+<td>Data never leaves the browser ✓</td>
+</tr>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>Package support</strong></td>
+<td>Any CRAN package</td>
+<td>Only packages compiled for Wasm (growing list)</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Database connections</strong></td>
+<td>Full support (server can connect to any DB)</td>
+<td>Not supported (no network sockets in Wasm)</td>
+</tr>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>File system access</strong></td>
+<td>Full server file system</td>
+<td>Sandboxed virtual file system only</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Scaling</strong></td>
+<td>Requires server scaling / load balancing</td>
+<td>Infinite scale (each user runs their own instance)</td>
+</tr>
+<tr class="odd">
+<td style="padding: 0.6rem 1rem"><strong>Offline use</strong></td>
+<td>No (requires server connection)</td>
+<td>Possible after initial load (assets can be cached)</td>
+</tr>
+<tr class="even" style="background:rgba(27,79,114,0.05);">
+<td style="padding: 0.6rem 1rem"><strong>Best for</strong></td>
+<td>Production apps, large data, DB connections</td>
+<td>Educational content, portfolios, reports, prototypes</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</section>
+<section id="strengths-of-shinylive" class="level2">
+<h2 class="anchored" data-anchor-id="strengths-of-shinylive">Strengths of Shinylive</h2>
+<section id="zero-infrastructure-cost" class="level3">
+<h3 class="anchored" data-anchor-id="zero-infrastructure-cost">1. Zero infrastructure cost</h3>
+<p>Because Shinylive apps are static files, you can host them on <strong>GitHub Pages for free</strong>. There is no shinyapps.io monthly plan, no Posit Connect license, no server to maintain. For a student portfolio or teaching materials, this is a significant advantage.</p>
+</section>
+<section id="perfect-for-embedding-in-quarto-documents" class="level3">
+<h3 class="anchored" data-anchor-id="perfect-for-embedding-in-quarto-documents">2. Perfect for embedding in Quarto documents</h3>
+<p>Shinylive is deeply integrated with Quarto. A single <code>.qmd</code> file can contain text, code, plots, and live interactive Shiny widgets — all rendering to a single static HTML file. This makes it ideal for lecture notes, tutorials, and reproducible reports that need interactivity.</p>
+</section>
+<section id="data-privacy-by-design" class="level3">
+<h3 class="anchored" data-anchor-id="data-privacy-by-design">3. Data privacy by design</h3>
+<p>Because all computation happens locally in the browser, sensitive data never travels across the network to a server. For healthcare, government, or financial applications where data privacy is paramount, this is a structural advantage.</p>
+</section>
+<section id="infinite-scale" class="level3">
+<h3 class="anchored" data-anchor-id="infinite-scale">4. Infinite scale</h3>
+<p>Every user runs their own isolated R instance in their own browser tab. There is no shared server, so ten users or ten thousand users make no difference to the host.</p>
+<hr>
+</section>
+</section>
+<section id="weaknesses-of-shinylive" class="level2">
+<h2 class="anchored" data-anchor-id="weaknesses-of-shinylive">Weaknesses of Shinylive</h2>
+<section id="slow-initial-load" class="level3">
+<h3 class="anchored" data-anchor-id="slow-initial-load">1. Slow initial load</h3>
+<p>The first time a user opens a Shinylive app, their browser must download the webR runtime — roughly 5–20 MB depending on which packages are needed. On a fast connection this takes a few seconds; on a slow one it can feel sluggish. Traditional Shiny apps load almost instantly because R is already running on the server.</p>
+</section>
+<section id="limited-package-support" class="level3">
+<h3 class="anchored" data-anchor-id="limited-package-support">2. Limited package support</h3>
+<p>Not every R package can run in WebAssembly. Packages that depend on compiled C or Fortran code need to be specifically recompiled for Wasm. Posit maintains a growing list of supported packages, and popular ones like <code>ggplot2</code>, <code>dplyr</code>, and <code>tidyr</code> work — but if your app depends on a niche package, it may not be available yet.</p>
+</section>
+<section id="no-server-side-resources" class="level3">
+<h3 class="anchored" data-anchor-id="no-server-side-resources">3. No server-side resources</h3>
+<p>Traditional Shiny can connect to databases, read large files from disk, call external APIs, or run long-running background jobs. Shinylive can’t do any of this — WebAssembly runs in a sandboxed environment without access to network sockets or the host file system.</p>
+</section>
+<section id="slower-computation" class="level3">
+<h3 class="anchored" data-anchor-id="slower-computation">4. Slower computation</h3>
+<p>WebAssembly executes at roughly 50–80% of native speed for CPU-bound work. For simple interactive dashboards this is imperceptible, but for computationally heavy tasks (large matrix operations, bootstrap simulations, complex model fitting), the overhead becomes noticeable.</p>
+<hr>
+</section>
+</section>
+<section id="when-to-choose-which" class="level2">
+<h2 class="anchored" data-anchor-id="when-to-choose-which">When to Choose Which</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Quick decision guide
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Choose Shinylive when:</strong> - You’re embedding interactivity in a Quarto report or teaching document - You want to host on GitHub Pages or Netlify for free - Your app uses common packages (ggplot2, dplyr, shiny) - Data is small and privacy matters - You want to share with anyone, no logins</p>
+<p><strong>Choose Traditional Shiny when:</strong> - Your app connects to a database or reads large files - You need packages not yet available in webR - Your computation is heavy (fitting models, large data transformations) - You need production-grade uptime and monitoring - Your organization already has Posit Connect</p>
+</div>
+</div>
+<hr>
+</section>
+<section id="the-bigger-picture-webassembly-in-data-science" class="level2">
+<h2 class="anchored" data-anchor-id="the-bigger-picture-webassembly-in-data-science">The Bigger Picture: WebAssembly in Data Science</h2>
+<p>Shinylive is part of a broader trend: moving data science tools to the browser using WebAssembly. <strong>Pyodide</strong> brings Python to the browser the same way webR does for R. Observable’s <strong>Observable Plot</strong> and <strong>DuckDB-Wasm</strong> let you query millions of rows of data entirely client-side.</p>
+<p>The trajectory is clear: increasingly, analytical work that once required a server will be executable locally. This changes how we think about sharing analyses — instead of spinning up infrastructure, we publish a URL.</p>
+<p>For now, Shinylive sits at the intersection of these two worlds: it lowers the barrier to sharing interactive R work dramatically, at the cost of some performance and package coverage. As webR matures and more packages get compiled for Wasm, those limitations will shrink.</p>
+<hr>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Traditional Shiny</th>
+<th>Shinylive</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Core idea</strong></td>
+<td>R on a server, browser as display</td>
+<td>R in the browser via WebAssembly</td>
+</tr>
+<tr class="even">
+<td><strong>Best use case</strong></td>
+<td>Production apps, big data, DB</td>
+<td>Portfolios, teaching, reports</td>
+</tr>
+<tr class="odd">
+<td><strong>Hosting</strong></td>
+<td>Needs live R process</td>
+<td>Any static host</td>
+</tr>
+<tr class="even">
+<td><strong>Packages</strong></td>
+<td>All of CRAN</td>
+<td>Wasm-compiled subset</td>
+</tr>
+<tr class="odd">
+<td><strong>Privacy</strong></td>
+<td>Data goes to server</td>
+<td>Data stays in browser</td>
+</tr>
+</tbody>
+</table>
+<p>Shinylive is not a replacement for traditional Shiny — it’s a complement. Together, they cover the full spectrum from quick embeddable widgets to production enterprise applications, all within the same familiar R and Shiny programming model.</p>
+<hr>
+</section>
+<section id="references" class="level2">
+<h2 class="anchored" data-anchor-id="references">References</h2>
+<ul>
+<li>Posit. <em>Shinylive: Shiny for Python and R, running in the browser.</em> https://shiny.posit.co/py/docs/shinylive.html</li>
+<li>Chang, W. &amp; Wickham, H. <em>Mastering Shiny.</em> O’Reilly, 2021. https://mastering-shiny.org</li>
+<li>Allaire, J.J. et al.&nbsp;<em>Quarto documentation.</em> https://quarto.org/docs/interactive/shiny/</li>
+<li>webR project. <em>webR: R in the Browser.</em> https://docs.r-wasm.org/webr/latest/</li>
+<li>Mozilla Developer Network. <em>WebAssembly.</em> https://developer.mozilla.org/en-US/docs/WebAssembly</li>
+</ul>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>© 2025 Shayah LaCour · Built with <a href="https://quarto.org">Quarto</a></p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+<script src="site_libs/quarto-html/zenscroll-min.js"></script>
+</body></html>

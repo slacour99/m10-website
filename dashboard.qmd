@@ -1,0 +1,241 @@
+---
+title: "Marketing Attribution Dashboard"
+subtitle: "MSDM Culminating Experience Project · Trauma Resource Institute"
+author: "Shayah LaCour"
+date: today
+format:
+  dashboard:
+    theme:
+      - flatly
+      - custom.scss
+    logo: ""
+    nav-buttons:
+      - icon: github
+        href: https://github.com/slacour2319
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(ggplot2)
+library(dplyr)
+
+# Colour palette consistent with site
+clr_navy  <- "#1B4F72"
+clr_terra <- "#E8825A"
+clr_green <- "#2E8B6E"
+clr_muted <- "#8FAABC"
+
+channels <- c("Affiliate", "Mobile", "Paid Search", "Social Media")
+colors4  <- c("#1B4F72", "#E8825A", "#2E8B6E", "#8172B3")
+```
+
+# Overview
+
+## Row {height=25%}
+
+```{r}
+#| content: valuebox
+#| title: "Total Users"
+list(icon = "people-fill", color = "primary", value = 105)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Conversions"
+list(icon = "check-circle-fill", color = "success", value = 83)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Conversion Rate"
+list(icon = "graph-up-arrow", color = "warning", value = "79.0%")
+```
+
+```{r}
+#| content: valuebox
+#| title: "Unique Channels"
+list(icon = "diagram-3-fill", color = "info", value = 4)
+```
+
+## Row {height=75%}
+
+### Column {width=50%}
+
+```{r}
+#| title: "First Touch vs Last Touch Attribution"
+comparison_df <- data.frame(
+  method  = rep(c("First Touch", "Last Touch", "Markov Chain"), each = 4),
+  channel = rep(channels, times = 3),
+  value   = c(
+    0.254, 0.418, 0.209, 0.119,
+    0.388, 0.224, 0.269, 0.119,
+    0.260, 0.245, 0.238, 0.257
+  )
+)
+
+ggplot(comparison_df, aes(x = method, y = value, fill = channel)) +
+  geom_col(position = "fill", width = 0.65) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_fill_manual(values = colors4) +
+  labs(x = NULL, y = "Share of attribution credit", fill = "Channel") +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    legend.position = "bottom",
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+### Column {width=50%}
+
+```{r}
+#| title: "Markov Chain: Removal Effect (Drop in Conversion Probability)"
+removal_df <- data.frame(
+  channel = channels,
+  drop    = c(0.6483, 0.6830, 0.6747, 0.6154)
+)
+
+ggplot(removal_df, aes(x = reorder(channel, drop), y = drop, fill = channel)) +
+  geom_col(width = 0.6, show.legend = FALSE) +
+  geom_text(aes(label = scales::percent(drop, accuracy = 0.1)),
+            hjust = -0.15, size = 4, fontface = "bold") +
+  coord_flip() +
+  scale_fill_manual(values = colors4) +
+  scale_y_continuous(labels = scales::percent_format(), limits = c(0, 0.82)) +
+  labs(x = NULL, y = "Drop in conversion probability") +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+# Attribution Detail
+
+## Row
+
+### Column {width=60%}
+
+```{r}
+#| title: "Attribution Credits by Method"
+credits_df <- data.frame(
+  channel = rep(channels, times = 4),
+  method  = rep(c("First Touch", "Last Touch", "Markov", "Shapley"), each = 4),
+  credits = c(
+    34, 21, 16, 12,      # first touch
+    24, 31, 22, 6,       # last touch
+    21.4, 21.6, 20.5, 19.5,  # markov
+    20.7, 20.6, 21.0, 20.7   # shapley
+  )
+)
+
+ggplot(credits_df, aes(x = channel, y = credits, fill = method)) +
+  geom_col(position = "dodge", width = 0.7) +
+  scale_fill_manual(values = c(clr_navy, clr_terra, clr_green, "#8172B3")) +
+  labs(x = NULL, y = "Conversion credits", fill = "Model") +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    legend.position = "bottom",
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+### Column {width=40%}
+
+```{r}
+#| title: "Shapley Values (Average Marginal Contribution)"
+shapley_df <- data.frame(
+  channel = channels,
+  value   = c(0.2001, 0.1962, 0.1969, 0.1973)
+)
+
+ggplot(shapley_df, aes(x = reorder(channel, value), y = value, fill = channel)) +
+  geom_col(width = 0.55, show.legend = FALSE) +
+  geom_text(aes(label = round(value, 4)), hjust = -0.15, size = 4) +
+  coord_flip() +
+  scale_fill_manual(values = colors4) +
+  scale_y_continuous(limits = c(0, 0.24)) +
+  labs(x = NULL, y = "Shapley value") +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+# Path Analysis
+
+## Row
+
+```{r}
+#| title: "Average Conversion Rate by Path Length Quartile"
+set.seed(42)
+path_df <- data.frame(
+  quartile = rep(c("Q1 (6–9)", "Q2 (10–17)", "Q3 (18–31)", "Q4 (32–45)"), each = 26),
+  conversion = c(
+    rbinom(26, 1, 0.69),
+    rbinom(26, 1, 0.77),
+    rbinom(26, 1, 0.84),
+    rbinom(26, 1, 0.86)
+  )
+) |>
+  group_by(quartile) |>
+  summarise(rate = mean(conversion), .groups = "drop")
+
+ggplot(path_df, aes(x = quartile, y = rate, group = 1)) +
+  geom_line(color = clr_terra, linewidth = 1.5) +
+  geom_point(size = 5, color = clr_navy) +
+  geom_text(aes(label = scales::percent(rate, accuracy = 1)),
+            vjust = -1, size = 4, fontface = "bold", color = clr_navy) +
+  scale_y_continuous(labels = scales::percent_format(), limits = c(0.5, 1)) +
+  labs(x = "Path length quartile (touches)", y = "Conversion rate") +
+  theme_minimal(base_size = 13) +
+  theme(plot.background = element_rect(fill = "white", color = NA))
+```
+
+```{r}
+#| title: "Channel Touch Frequency (All Users)"
+freq_df <- data.frame(
+  channel = channels,
+  pct     = c(28.5, 30.1, 26.4, 15.0)
+)
+
+ggplot(freq_df, aes(x = reorder(channel, pct), y = pct, fill = channel)) +
+  geom_col(width = 0.55, show.legend = FALSE) +
+  geom_text(aes(label = paste0(pct, "%")), hjust = -0.15, size = 4.5, fontface = "bold") +
+  coord_flip() +
+  scale_fill_manual(values = colors4) +
+  scale_y_continuous(limits = c(0, 38)) +
+  labs(x = NULL, y = "% of all touchpoints") +
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major.y = element_blank(),
+    plot.background = element_rect(fill = "white", color = NA)
+  )
+```
+
+# Key Findings
+
+## Row
+
+::: {.card}
+### Summary of Findings
+
+This dashboard presents marketing attribution analysis for the **Trauma Resource Institute (TRI)** as part of the MSDM Culminating Experience Project (AO #2). The goal is to measure which digital marketing channels contribute most to conversion across TRI's homepage and four program pages.
+
+**Key conclusions:**
+
+1. **All four channels matter.** Markov and Shapley models both show roughly equal contribution (~20–22 credits each), unlike first-touch which over-credits paid search (34) and last-touch which over-credits mobile (31).
+
+2. **Mobile and Paid Search are structurally essential.** The removal effect analysis shows that removing either channel causes the largest drop in conversion probability (~68%), making them the highest-risk channels to cut.
+
+3. **Social Media is undervalued by heuristics.** First-touch and last-touch both give social media the lowest credit (12 and 6 respectively), but the Markov model lifts it to near-parity (19.5 credits), suggesting it plays an important mid-funnel role that simple rules miss.
+
+4. **Longer journeys convert better.** Users with more touchpoints have higher conversion rates, suggesting retargeting and multi-channel nurturing improve outcomes.
+
+**Recommendation:** Use the Markov model as the primary attribution framework and Shapley values as a fairness check before making budget allocation decisions.
+:::

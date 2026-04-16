@@ -1,0 +1,267 @@
+/*-- scss:defaults --*/
+
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+$font-family-sans-serif: 'DM Sans', sans-serif;
+$font-family-monospace: 'DM Mono', monospace;
+$headings-font-family: 'DM Serif Display', serif;
+
+// Colour palette  
+$primary:   #1B4F72;   // deep navy
+$secondary: #E8825A;   // warm terracotta
+$success:   #2E8B6E;
+$light:     #F7F4F0;   // warm off-white
+$dark:      #1A1A1A;
+
+$body-bg:   #F7F4F0;
+$body-color: #2C2C2C;
+$link-color: $primary;
+
+$navbar-bg: $primary;
+$navbar-fg: #FFFFFF;
+
+$border-radius: 0.5rem;
+
+/*-- scss:rules --*/
+
+// Global
+body {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+// Navbar
+.navbar-brand {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+}
+
+.navbar .nav-link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// Hero section on home page
+.hero-section {
+  background: linear-gradient(135deg, #1B4F72 0%, #154060 60%, #0D2B40 100%);
+  color: white;
+  padding: 5rem 2rem;
+  margin: -1rem -1rem 3rem -1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(232,130,90,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-section h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-family: 'DM Serif Display', serif;
+  margin-bottom: 0.25rem;
+  line-height: 1.1;
+}
+
+.hero-section .hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.75);
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.04em;
+}
+
+.hero-section .hero-tagline {
+  font-size: 1.2rem;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  color: #E8825A;
+  margin-bottom: 2rem;
+}
+
+// Photo circle
+.profile-photo {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
+  object-fit: cover;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.profile-placeholder {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+// Skill badges
+.skill-badge {
+  display: inline-block;
+  background: white;
+  color: $primary;
+  border: 1.5px solid rgba(27, 79, 114, 0.2);
+  border-radius: 2rem;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin: 0.25rem;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
+
+.skill-badge:hover {
+  background: $primary;
+  color: white;
+  border-color: $primary;
+}
+
+.skill-badge.accent {
+  background: $secondary;
+  color: white;
+  border-color: $secondary;
+}
+
+// Cards
+.info-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+}
+
+.info-card h3 {
+  color: $primary;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.info-card .card-icon {
+  font-size: 1.8rem;
+  margin-bottom: 0.75rem;
+}
+
+// Section labels
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: $secondary;
+  margin-bottom: 0.5rem;
+}
+
+// Timeline
+.timeline-item {
+  border-left: 3px solid $secondary;
+  padding-left: 1.25rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: $secondary;
+  border-radius: 50%;
+  position: absolute;
+  left: -6.5px;
+  top: 6px;
+}
+
+.timeline-item .year {
+  font-size: 0.8rem;
+  color: $secondary;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.timeline-item h4 {
+  margin: 0.2rem 0 0.1rem;
+  font-size: 1rem;
+  color: $dark;
+}
+
+.timeline-item p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+// Essay pages
+.essay-header {
+  background: $primary;
+  color: white;
+  padding: 3rem 2rem 2rem;
+  margin: -1rem -1rem 2.5rem -1rem;
+  border-radius: 0 0 1.5rem 1.5rem;
+}
+
+.essay-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.essay-header p {
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+}
+
+// Callout overrides
+.callout {
+  border-radius: 0.75rem;
+}
+
+// Code
+pre {
+  border-radius: 0.5rem;
+  font-size: 0.88rem;
+}
+
+// Footer
+.nav-footer {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+}
+
+// Comparison table styling
+.comparison-table th {
+  background: $primary;
+  color: white;
+}
+
+.comparison-table tr:nth-child(even) {
+  background: rgba(27,79,114,0.05);
+}

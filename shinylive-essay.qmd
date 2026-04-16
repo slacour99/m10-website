@@ -1,0 +1,299 @@
+---
+title: "Shinylive: Serverless Shiny in the Browser"
+subtitle: "What it is, how it works, and when to use it"
+author: "Shayah LaCour"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    code-fold: false
+execute:
+  echo: true
+  eval: false
+  warning: false
+---
+
+```{=html}
+<div class="essay-header">
+  <h1>🌐 Shinylive: Shiny Without a Server</h1>
+  <p>How WebAssembly makes it possible to run R in your browser — and why that changes everything</p>
+</div>
+```
+
+## The Traditional Problem
+
+Every Shiny app you've built so far has a fundamental constraint: **it needs a live R process running somewhere**. When a user moves a slider, their browser sends a message to that R process, R re-runs the relevant code, and the result travels back. The browser is just a display terminal.
+
+This is powerful — it means the full power of R and all its packages is available — but it creates friction:
+
+- You need a server (your own laptop, shinyapps.io, Posit Connect...)
+- Someone has to pay for that server
+- The app goes offline if the server does
+- Sharing becomes a deployment problem, not just a files problem
+
+**Shinylive solves this by making the server disappear entirely.**
+
+---
+
+## What is Shinylive?
+
+Shinylive is a version of Shiny that runs **entirely inside the user's web browser** using **WebAssembly (Wasm)**. There is no R server. R itself — the interpreter, the packages, everything — runs locally in the browser using a technology called [webR](https://docs.r-wasm.org/webr/latest/).
+
+::: {.callout-note}
+## WebAssembly in plain language
+WebAssembly is a low-level binary format that modern browsers can execute at near-native speed. Originally designed for C and C++ programs, it has been extended to run other languages — including R. The R interpreter has been compiled to Wasm and is distributed as a downloadable bundle. When a Shinylive app loads in your browser, it downloads that R bundle and starts executing your app code directly.
+:::
+
+The result: a Shiny app that lives as a collection of static files (HTML, CSS, JS, Wasm blobs). You can host it on GitHub Pages, Netlify, any CDN — anywhere that can serve static files. No R process, no server management.
+
+---
+
+## How Shinylive Works Architecturally
+
+Here is a side-by-side comparison of the two architectures:
+
+### Traditional Shiny
+
+```
+User browser  ──── HTTP request ────►  R Server
+              ◄── rendered output ───  (Shiny running in R process)
+                                       (input → reactive graph → output)
+```
+
+The browser is a thin client. All computation happens server-side.
+
+### Shinylive
+
+```
+User browser  ──── loads static files ────►  CDN / GitHub Pages / Netlify
+              ◄──── HTML + JS + Wasm ──────  (no R process exists)
+              
+              [Browser now contains webR + your app code]
+              [input → reactive graph → output all happen locally]
+```
+
+The browser is the entire compute environment. The CDN just serves files.
+
+---
+
+## Setting Up Shinylive in Quarto
+
+You don't need to install a separate package to use Shinylive in a Quarto document — you use the `shinylive` Quarto extension.
+
+### Step 1: Install the extension
+
+```bash
+# Run in your terminal from your project folder
+quarto add quarto-ext/shinylive
+```
+
+This adds an `_extensions/` folder to your project.
+
+### Step 2: Add the filter to your YAML
+
+```yaml
+---
+title: "My Shinylive Document"
+format: html
+filters:
+  - shinylive
+---
+```
+
+### Step 3: Write a `{shinylive-r}` code block
+
+````markdown
+```{shinylive-r}
+#| standalone: true
+
+library(shiny)
+
+ui <- fluidPage(
+  sliderInput("n", "Number", 1, 100, 50),
+  textOutput("result")
+)
+
+server <- function(input, output) {
+  output$result <- renderText(paste("Value:", input$n))
+}
+
+shinyApp(ui, server)
+```
+````
+
+When Quarto renders this document, it packages the app code and the webR runtime together. The resulting HTML file is fully self-contained — the Shiny app runs when anyone opens it.
+
+---
+
+## A Realistic Shinylive Example
+
+Here is a more complete example of a Shinylive app embedded in a Quarto document. This could sit in one of your dashboard or report pages and work for any reader without any server:
+
+````markdown
+```{shinylive-r}
+#| standalone: true
+#| viewerHeight: 500
+
+library(shiny)
+library(ggplot2)
+
+channels <- c("Mobile", "Paid Search", "Affiliate", "Social Media")
+
+attr_df <- data.frame(
+  channel = rep(channels, 3),
+  model   = rep(c("First Touch", "Last Touch", "Markov"), each = 4),
+  credits = c(21, 34, 17, 10,
+              26, 15, 18,  8,
+              21, 20, 20, 21)
+)
+
+ui <- fluidPage(
+  titlePanel("Interactive Attribution Explorer"),
+  sidebarLayout(
+    sidebarPanel(
+      checkboxGroupInput("models", "Show models:",
+                         choices  = unique(attr_df$model),
+                         selected = unique(attr_df$model))
+    ),
+    mainPanel(plotOutput("p"))
+  )
+)
+
+server <- function(input, output) {
+  output$p <- renderPlot({
+    sub <- attr_df[attr_df$model %in% input$models, ]
+    ggplot(sub, aes(channel, credits, fill = model)) +
+      geom_col(position = "dodge") +
+      theme_minimal(base_size = 14) +
+      labs(x = NULL, y = "Credits", fill = NULL)
+  })
+}
+
+shinyApp(ui, server)
+```
+````
+
+::: {.callout-tip}
+## The `standalone: true` option
+This tells Shinylive that the code block contains a complete, self-contained app (with its own `shinyApp()` call), rather than just a fragment. Always include this for full apps.
+:::
+
+---
+
+## Shinylive vs Traditional Shiny: Full Comparison
+
+```{=html}
+<table class="comparison-table" style="width:100%; border-collapse:collapse; border-radius:0.5rem; overflow:hidden;">
+<thead>
+<tr>
+  <th style="padding:0.75rem 1rem; text-align:left;">Dimension</th>
+  <th style="padding:0.75rem 1rem; text-align:left;">Traditional Shiny</th>
+  <th style="padding:0.75rem 1rem; text-align:left;">Shinylive</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:0.6rem 1rem;"><strong>Where R runs</strong></td><td>Server (your machine, shinyapps.io, Posit Connect)</td><td>User's browser (via WebAssembly)</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Hosting requirement</strong></td><td>Live R process required</td><td>Any static file host (GitHub Pages, Netlify, CDN)</td></tr>
+<tr><td style="padding:0.6rem 1rem;"><strong>Cost to host</strong></td><td>Free tier limited; paid plans for scale</td><td>Free (static hosting is cheap or free)</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Initial load time</strong></td><td>Fast (server already has R)</td><td>Slower — browser must download webR runtime (~5–20 MB)</td></tr>
+<tr><td style="padding:0.6rem 1rem;"><strong>Computation speed</strong></td><td>Fast (server-grade hardware)</td><td>Slower (WebAssembly has overhead vs native)</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Data privacy</strong></td><td>Data sent to server (must secure server)</td><td>Data never leaves the browser ✓</td></tr>
+<tr><td style="padding:0.6rem 1rem;"><strong>Package support</strong></td><td>Any CRAN package</td><td>Only packages compiled for Wasm (growing list)</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Database connections</strong></td><td>Full support (server can connect to any DB)</td><td>Not supported (no network sockets in Wasm)</td></tr>
+<tr><td style="padding:0.6rem 1rem;"><strong>File system access</strong></td><td>Full server file system</td><td>Sandboxed virtual file system only</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Scaling</strong></td><td>Requires server scaling / load balancing</td><td>Infinite scale (each user runs their own instance)</td></tr>
+<tr><td style="padding:0.6rem 1rem;"><strong>Offline use</strong></td><td>No (requires server connection)</td><td>Possible after initial load (assets can be cached)</td></tr>
+<tr style="background:rgba(27,79,114,0.05);"><td style="padding:0.6rem 1rem;"><strong>Best for</strong></td><td>Production apps, large data, DB connections</td><td>Educational content, portfolios, reports, prototypes</td></tr>
+</tbody>
+</table>
+```
+
+---
+
+## Strengths of Shinylive
+
+### 1. Zero infrastructure cost
+Because Shinylive apps are static files, you can host them on **GitHub Pages for free**. There is no shinyapps.io monthly plan, no Posit Connect license, no server to maintain. For a student portfolio or teaching materials, this is a significant advantage.
+
+### 2. Perfect for embedding in Quarto documents
+Shinylive is deeply integrated with Quarto. A single `.qmd` file can contain text, code, plots, and live interactive Shiny widgets — all rendering to a single static HTML file. This makes it ideal for lecture notes, tutorials, and reproducible reports that need interactivity.
+
+### 3. Data privacy by design
+Because all computation happens locally in the browser, sensitive data never travels across the network to a server. For healthcare, government, or financial applications where data privacy is paramount, this is a structural advantage.
+
+### 4. Infinite scale
+Every user runs their own isolated R instance in their own browser tab. There is no shared server, so ten users or ten thousand users make no difference to the host.
+
+---
+
+## Weaknesses of Shinylive
+
+### 1. Slow initial load
+The first time a user opens a Shinylive app, their browser must download the webR runtime — roughly 5–20 MB depending on which packages are needed. On a fast connection this takes a few seconds; on a slow one it can feel sluggish. Traditional Shiny apps load almost instantly because R is already running on the server.
+
+### 2. Limited package support
+Not every R package can run in WebAssembly. Packages that depend on compiled C or Fortran code need to be specifically recompiled for Wasm. Posit maintains a growing list of supported packages, and popular ones like `ggplot2`, `dplyr`, and `tidyr` work — but if your app depends on a niche package, it may not be available yet.
+
+### 3. No server-side resources
+Traditional Shiny can connect to databases, read large files from disk, call external APIs, or run long-running background jobs. Shinylive can't do any of this — WebAssembly runs in a sandboxed environment without access to network sockets or the host file system.
+
+### 4. Slower computation
+WebAssembly executes at roughly 50–80% of native speed for CPU-bound work. For simple interactive dashboards this is imperceptible, but for computationally heavy tasks (large matrix operations, bootstrap simulations, complex model fitting), the overhead becomes noticeable.
+
+---
+
+## When to Choose Which
+
+::: {.callout-tip}
+## Quick decision guide
+
+**Choose Shinylive when:**
+- You're embedding interactivity in a Quarto report or teaching document
+- You want to host on GitHub Pages or Netlify for free
+- Your app uses common packages (ggplot2, dplyr, shiny)
+- Data is small and privacy matters
+- You want to share with anyone, no logins
+
+**Choose Traditional Shiny when:**
+- Your app connects to a database or reads large files
+- You need packages not yet available in webR
+- Your computation is heavy (fitting models, large data transformations)
+- You need production-grade uptime and monitoring
+- Your organization already has Posit Connect
+:::
+
+---
+
+## The Bigger Picture: WebAssembly in Data Science
+
+Shinylive is part of a broader trend: moving data science tools to the browser using WebAssembly. **Pyodide** brings Python to the browser the same way webR does for R. Observable's **Observable Plot** and **DuckDB-Wasm** let you query millions of rows of data entirely client-side.
+
+The trajectory is clear: increasingly, analytical work that once required a server will be executable locally. This changes how we think about sharing analyses — instead of spinning up infrastructure, we publish a URL.
+
+For now, Shinylive sits at the intersection of these two worlds: it lowers the barrier to sharing interactive R work dramatically, at the cost of some performance and package coverage. As webR matures and more packages get compiled for Wasm, those limitations will shrink.
+
+---
+
+## Summary
+
+| | Traditional Shiny | Shinylive |
+|---|---|---|
+| **Core idea** | R on a server, browser as display | R in the browser via WebAssembly |
+| **Best use case** | Production apps, big data, DB | Portfolios, teaching, reports |
+| **Hosting** | Needs live R process | Any static host |
+| **Packages** | All of CRAN | Wasm-compiled subset |
+| **Privacy** | Data goes to server | Data stays in browser |
+
+Shinylive is not a replacement for traditional Shiny — it's a complement. Together, they cover the full spectrum from quick embeddable widgets to production enterprise applications, all within the same familiar R and Shiny programming model.
+
+---
+
+## References
+
+- Posit. *Shinylive: Shiny for Python and R, running in the browser.* https://shiny.posit.co/py/docs/shinylive.html
+- Chang, W. & Wickham, H. *Mastering Shiny.* O'Reilly, 2021. https://mastering-shiny.org
+- Allaire, J.J. et al. *Quarto documentation.* https://quarto.org/docs/interactive/shiny/
+- webR project. *webR: R in the Browser.* https://docs.r-wasm.org/webr/latest/
+- Mozilla Developer Network. *WebAssembly.* https://developer.mozilla.org/en-US/docs/WebAssembly

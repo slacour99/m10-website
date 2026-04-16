@@ -1,0 +1,205 @@
+[
+  {
+    "objectID": "shiny-essay.html",
+    "href": "shiny-essay.html",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "",
+    "text": "A practical lecture note for analysts ready to move beyond static reports"
+  },
+  {
+    "objectID": "shiny-essay.html#what-is-shiny",
+    "href": "shiny-essay.html#what-is-shiny",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "What is Shiny?",
+    "text": "What is Shiny?\nIf you’ve ever finished an R analysis and thought “I wish my manager could just drag a slider and see this update” — that’s exactly what Shiny solves.\nShiny is an R package developed by Posit (formerly RStudio) that lets you turn ordinary R code into a fully interactive web application — without writing a single line of JavaScript, HTML, or CSS (unless you want to). Your colleague can open a URL in a browser, adjust inputs, and see outputs update in real time, all powered by R running on a server behind the scenes.\n\n\n\n\n\n\nNoteThe core idea in one sentence\n\n\n\nShiny wraps R in a reactive framework: when an input changes (a slider, a dropdown, a text box), any output that depends on it automatically re-runs and updates."
+  },
+  {
+    "objectID": "shiny-essay.html#the-two-part-structure",
+    "href": "shiny-essay.html#the-two-part-structure",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "The Two-Part Structure",
+    "text": "The Two-Part Structure\nEvery Shiny app has exactly two logical pieces:\n\n\n\n\n\n\n\n\nPart\nWhat it does\nWhere it lives\n\n\n\n\nUI (ui)\nDefines the layout and controls the user sees\nui.R or the ui object\n\n\nServer (server)\nContains the R code that produces outputs\nserver.R or the server function\n\n\n\nYou can write these in two separate files (ui.R + server.R) or in a single app.R file. For learning purposes, a single file is easiest."
+  },
+  {
+    "objectID": "shiny-essay.html#your-first-shiny-app-10-lines",
+    "href": "shiny-essay.html#your-first-shiny-app-10-lines",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Your First Shiny App (10 Lines)",
+    "text": "Your First Shiny App (10 Lines)\nHere is the smallest working Shiny app. It takes a number from a slider and shows its square root.\n\nlibrary(shiny)\n\nui &lt;- fluidPage(\n  sliderInput(\"n\", \"Pick a number\", min = 1, max = 100, value = 25),\n  textOutput(\"result\")\n)\n\nserver &lt;- function(input, output) {\n  output$result &lt;- renderText({\n    paste(\"Square root of\", input$n, \"is\", round(sqrt(input$n), 3))\n  })\n}\n\nshinyApp(ui, server)\n\n\n\n\n\n\n\nTipTry it yourself\n\n\n\nPaste this into RStudio and click Run App. You’ll see a slider and a line of text. Drag the slider — notice the text updates instantly. That instant update is Shiny’s reactive system doing its job."
+  },
+  {
+    "objectID": "shiny-essay.html#understanding-reactivity",
+    "href": "shiny-essay.html#understanding-reactivity",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Understanding Reactivity",
+    "text": "Understanding Reactivity\nReactivity is what makes Shiny feel alive. The rule is simple:\n\nAny output that reads input$x will automatically re-run whenever input$x changes.\n\nYou don’t call a refresh function. You don’t write event listeners. Shiny tracks the dependency for you.\n\nThe reactive graph\n[sliderInput: n]  ──────►  [renderText: result]\nIf you had two outputs both reading input$n, they would both re-run when the slider moves. If you had an output that reads input$a and input$b, it re-runs when either changes.\n\n\nreactive() — sharing computed values\nIf multiple outputs need the same intermediate computation, don’t repeat the code. Wrap it in reactive():\n\nserver &lt;- function(input, output) {\n  \n  # Computed once, shared by multiple outputs\n  filtered_data &lt;- reactive({\n    mtcars[mtcars$cyl == input$cyl, ]\n  })\n  \n  output$plot  &lt;- renderPlot({ plot(filtered_data()$wt, filtered_data()$mpg) })\n  output$table &lt;- renderTable({ filtered_data() })\n}\n\nNote: you call a reactive expression like a function — filtered_data() — with parentheses."
+  },
+  {
+    "objectID": "shiny-essay.html#key-ui-components",
+    "href": "shiny-essay.html#key-ui-components",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Key UI Components",
+    "text": "Key UI Components\nShiny has built-in input and output widgets for almost everything you need.\n\nInputs\n\n# Numeric input\nsliderInput(\"year\", \"Select year:\", min = 2018, max = 2024, value = 2022)\n\n# Dropdown\nselectInput(\"channel\", \"Channel:\", choices = c(\"Mobile\", \"Paid Search\", \"Affiliate\", \"Social Media\"))\n\n# Checkbox group\ncheckboxGroupInput(\"methods\", \"Attribution methods:\",\n                   choices = c(\"First Touch\", \"Last Touch\", \"Markov\"),\n                   selected = \"Markov\")\n\n# Date range\ndateRangeInput(\"dates\", \"Date range:\",\n               start = \"2024-01-01\", end = Sys.Date())\n\n\n\nOutputs\n\n# In the UI: declare where each output goes\nplotOutput(\"my_chart\")\ntableOutput(\"my_table\")\ntextOutput(\"my_text\")\nverbatimTextOutput(\"my_code_output\")\n\n# In the server: produce each output\noutput$my_chart &lt;- renderPlot({ ... })\noutput$my_table &lt;- renderTable({ ... })\noutput$my_text  &lt;- renderText({ ... })"
+  },
+  {
+    "objectID": "shiny-essay.html#a-more-realistic-example-attribution-explorer",
+    "href": "shiny-essay.html#a-more-realistic-example-attribution-explorer",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "A More Realistic Example: Attribution Explorer",
+    "text": "A More Realistic Example: Attribution Explorer\nHere is a Shiny app closer to something you might actually use — an interactive attribution comparison tool:\n\nlibrary(shiny)\nlibrary(ggplot2)\nlibrary(dplyr)\n\n# Data\nattr_data &lt;- data.frame(\n  channel = rep(c(\"Mobile\", \"Paid Search\", \"Affiliate\", \"Social Media\"), 3),\n  method  = rep(c(\"First Touch\", \"Last Touch\", \"Markov\"), each = 4),\n  credits = c(21, 34, 17, 10,   # first touch\n              26, 15, 18, 8,    # last touch\n              21, 20, 20, 21)   # markov\n)\n\nui &lt;- fluidPage(\n  titlePanel(\"Attribution Model Explorer\"),\n  \n  sidebarLayout(\n    sidebarPanel(\n      checkboxGroupInput(\n        \"methods\",\n        \"Select attribution models:\",\n        choices  = unique(attr_data$method),\n        selected = unique(attr_data$method)\n      ),\n      hr(),\n      p(\"Adjust which models to display and compare how each model assigns\n        credit to the four marketing channels.\")\n    ),\n    \n    mainPanel(\n      plotOutput(\"attr_chart\", height = \"400px\"),\n      hr(),\n      tableOutput(\"attr_table\")\n    )\n  )\n)\n\nserver &lt;- function(input, output) {\n  \n  filtered &lt;- reactive({\n    attr_data |&gt; filter(method %in% input$methods)\n  })\n  \n  output$attr_chart &lt;- renderPlot({\n    ggplot(filtered(), aes(x = channel, y = credits, fill = method)) +\n      geom_col(position = \"dodge\", width = 0.65) +\n      scale_fill_brewer(palette = \"Set2\") +\n      labs(title = \"Conversion Credits by Channel and Model\",\n           x = NULL, y = \"Credits\", fill = \"Model\") +\n      theme_minimal(base_size = 14)\n  })\n  \n  output$attr_table &lt;- renderTable({\n    filtered() |&gt;\n      tidyr::pivot_wider(names_from = method, values_from = credits)\n  })\n}\n\nshinyApp(ui, server)"
+  },
+  {
+    "objectID": "shiny-essay.html#layout-options",
+    "href": "shiny-essay.html#layout-options",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Layout Options",
+    "text": "Layout Options\nShiny gives you several layout options to structure more complex apps.\n\nsidebarLayout() — most common\nControls on the left, output on the right. Used in the example above.\n\n\nnavbarPage() — multi-tab apps\n\nui &lt;- navbarPage(\n  \"My App\",\n  tabPanel(\"Overview\",   plotOutput(\"overview_plot\")),\n  tabPanel(\"Data Table\", tableOutput(\"data_table\")),\n  tabPanel(\"About\",      p(\"This app was built with Shiny.\"))\n)\n\n\n\nfluidRow() + column() — custom grids\n\nui &lt;- fluidPage(\n  fluidRow(\n    column(4, wellPanel(sliderInput(...))),\n    column(8, plotOutput(\"chart\"))\n  )\n)"
+  },
+  {
+    "objectID": "shiny-essay.html#how-to-deploy-a-shiny-app",
+    "href": "shiny-essay.html#how-to-deploy-a-shiny-app",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "How to Deploy a Shiny App",
+    "text": "How to Deploy a Shiny App\nA Shiny app requires a live R process to run. That means you can’t just put the files on a web server like a static HTML page — you need somewhere R is actually executing.\n\n\n\n\n\n\n\n\n\nOption\nCost\nDifficulty\nBest for\n\n\n\n\nshinyapps.io (Posit)\nFree tier available\nEasy\nSharing with anyone\n\n\nPosit Connect\nPaid (org license)\nMedium\nInternal enterprise use\n\n\nShiny Server (self-hosted)\nFree (server cost)\nHard\nFull control\n\n\nDocker + cloud\nPay-as-you-go\nHard\nProduction scale\n\n\n\nFor class and portfolio purposes, shinyapps.io is the easiest path:\n\n# Install rsconnect and deploy\ninstall.packages(\"rsconnect\")\nlibrary(rsconnect)\n\n# Authenticate once (get token from shinyapps.io)\nrsconnect::setAccountInfo(name = \"YOUR_ACCOUNT\",\n                          token = \"YOUR_TOKEN\",\n                          secret = \"YOUR_SECRET\")\n\n# Deploy\nrsconnect::deployApp(appDir = \"path/to/your/app/\")"
+  },
+  {
+    "objectID": "shiny-essay.html#common-mistakes-and-how-to-fix-them",
+    "href": "shiny-essay.html#common-mistakes-and-how-to-fix-them",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Common Mistakes (and How to Fix Them)",
+    "text": "Common Mistakes (and How to Fix Them)\n\n\n\n\n\n\nWarningMistake 1: Forgetting parentheses on reactive expressions\n\n\n\nfiltered_data is a function — you must call it as filtered_data().\n\n\n\n\n\n\n\n\nWarningMistake 2: Putting heavy computation outside reactive()\n\n\n\nCode at the top level of server runs once at startup. If you need something to re-run when inputs change, it must be inside reactive(), renderPlot(), etc.\n\n\n\n\n\n\n\n\nWarningMistake 3: Using input$x outside a reactive context\n\n\n\nYou can only read input values inside reactive(), render*(), or observe(). Reading input$x directly in a regular function will throw an error."
+  },
+  {
+    "objectID": "shiny-essay.html#summary",
+    "href": "shiny-essay.html#summary",
+    "title": "Building Interactive Apps with Shiny",
+    "section": "Summary",
+    "text": "Summary\nShiny lets you go from an R script to a shareable, interactive web app without leaving R. The mental model is:\n\nUI describes what the user sees and interacts with.\nServer contains the R logic that produces outputs.\nReactivity connects them automatically — change an input, outputs update.\n\nFor analysts already comfortable in R and ggplot2, Shiny is a natural next step. The learning curve is mostly about understanding reactivity, not about R itself.\n\n\n\n\n\n\nNoteWhat comes next?\n\n\n\nIn the next essay, we look at Shinylive — a way to run Shiny apps entirely in the browser, with no server required."
+  },
+  {
+    "objectID": "shinylive-essay.html",
+    "href": "shinylive-essay.html",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "",
+    "text": "How WebAssembly makes it possible to run R in your browser — and why that changes everything"
+  },
+  {
+    "objectID": "shinylive-essay.html#the-traditional-problem",
+    "href": "shinylive-essay.html#the-traditional-problem",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "The Traditional Problem",
+    "text": "The Traditional Problem\nEvery Shiny app you’ve built so far has a fundamental constraint: it needs a live R process running somewhere. When a user moves a slider, their browser sends a message to that R process, R re-runs the relevant code, and the result travels back. The browser is just a display terminal.\nThis is powerful — it means the full power of R and all its packages is available — but it creates friction:\n\nYou need a server (your own laptop, shinyapps.io, Posit Connect…)\nSomeone has to pay for that server\nThe app goes offline if the server does\nSharing becomes a deployment problem, not just a files problem\n\nShinylive solves this by making the server disappear entirely."
+  },
+  {
+    "objectID": "shinylive-essay.html#what-is-shinylive",
+    "href": "shinylive-essay.html#what-is-shinylive",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "What is Shinylive?",
+    "text": "What is Shinylive?\nShinylive is a version of Shiny that runs entirely inside the user’s web browser using WebAssembly (Wasm). There is no R server. R itself — the interpreter, the packages, everything — runs locally in the browser using a technology called webR.\n\n\n\n\n\n\nNoteWebAssembly in plain language\n\n\n\nWebAssembly is a low-level binary format that modern browsers can execute at near-native speed. Originally designed for C and C++ programs, it has been extended to run other languages — including R. The R interpreter has been compiled to Wasm and is distributed as a downloadable bundle. When a Shinylive app loads in your browser, it downloads that R bundle and starts executing your app code directly.\n\n\nThe result: a Shiny app that lives as a collection of static files (HTML, CSS, JS, Wasm blobs). You can host it on GitHub Pages, Netlify, any CDN — anywhere that can serve static files. No R process, no server management."
+  },
+  {
+    "objectID": "shinylive-essay.html#how-shinylive-works-architecturally",
+    "href": "shinylive-essay.html#how-shinylive-works-architecturally",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "How Shinylive Works Architecturally",
+    "text": "How Shinylive Works Architecturally\nHere is a side-by-side comparison of the two architectures:\n\nTraditional Shiny\nUser browser  ──── HTTP request ────►  R Server\n              ◄── rendered output ───  (Shiny running in R process)\n                                       (input → reactive graph → output)\nThe browser is a thin client. All computation happens server-side.\n\n\nShinylive\nUser browser  ──── loads static files ────►  CDN / GitHub Pages / Netlify\n              ◄──── HTML + JS + Wasm ──────  (no R process exists)\n              \n              [Browser now contains webR + your app code]\n              [input → reactive graph → output all happen locally]\nThe browser is the entire compute environment. The CDN just serves files."
+  },
+  {
+    "objectID": "shinylive-essay.html#setting-up-shinylive-in-quarto",
+    "href": "shinylive-essay.html#setting-up-shinylive-in-quarto",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "Setting Up Shinylive in Quarto",
+    "text": "Setting Up Shinylive in Quarto\nYou don’t need to install a separate package to use Shinylive in a Quarto document — you use the shinylive Quarto extension.\n\nStep 1: Install the extension\n# Run in your terminal from your project folder\nquarto add quarto-ext/shinylive\nThis adds an _extensions/ folder to your project.\n\n\nStep 2: Add the filter to your YAML\n---\ntitle: \"My Shinylive Document\"\nformat: html\nfilters:\n  - shinylive\n---\n\n\nStep 3: Write a {shinylive-r} code block\n```{shinylive-r}\n#| standalone: true\n\nlibrary(shiny)\n\nui &lt;- fluidPage(\n  sliderInput(\"n\", \"Number\", 1, 100, 50),\n  textOutput(\"result\")\n)\n\nserver &lt;- function(input, output) {\n  output$result &lt;- renderText(paste(\"Value:\", input$n))\n}\n\nshinyApp(ui, server)\n```\nWhen Quarto renders this document, it packages the app code and the webR runtime together. The resulting HTML file is fully self-contained — the Shiny app runs when anyone opens it."
+  },
+  {
+    "objectID": "shinylive-essay.html#a-realistic-shinylive-example",
+    "href": "shinylive-essay.html#a-realistic-shinylive-example",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "A Realistic Shinylive Example",
+    "text": "A Realistic Shinylive Example\nHere is a more complete example of a Shinylive app embedded in a Quarto document. This could sit in one of your dashboard or report pages and work for any reader without any server:\n```{shinylive-r}\n#| standalone: true\n#| viewerHeight: 500\n\nlibrary(shiny)\nlibrary(ggplot2)\n\nchannels &lt;- c(\"Mobile\", \"Paid Search\", \"Affiliate\", \"Social Media\")\n\nattr_df &lt;- data.frame(\n  channel = rep(channels, 3),\n  model   = rep(c(\"First Touch\", \"Last Touch\", \"Markov\"), each = 4),\n  credits = c(21, 34, 17, 10,\n              26, 15, 18,  8,\n              21, 20, 20, 21)\n)\n\nui &lt;- fluidPage(\n  titlePanel(\"Interactive Attribution Explorer\"),\n  sidebarLayout(\n    sidebarPanel(\n      checkboxGroupInput(\"models\", \"Show models:\",\n                         choices  = unique(attr_df$model),\n                         selected = unique(attr_df$model))\n    ),\n    mainPanel(plotOutput(\"p\"))\n  )\n)\n\nserver &lt;- function(input, output) {\n  output$p &lt;- renderPlot({\n    sub &lt;- attr_df[attr_df$model %in% input$models, ]\n    ggplot(sub, aes(channel, credits, fill = model)) +\n      geom_col(position = \"dodge\") +\n      theme_minimal(base_size = 14) +\n      labs(x = NULL, y = \"Credits\", fill = NULL)\n  })\n}\n\nshinyApp(ui, server)\n```\n\n\n\n\n\n\nTipThe standalone: true option\n\n\n\nThis tells Shinylive that the code block contains a complete, self-contained app (with its own shinyApp() call), rather than just a fragment. Always include this for full apps."
+  },
+  {
+    "objectID": "shinylive-essay.html#shinylive-vs-traditional-shiny-full-comparison",
+    "href": "shinylive-essay.html#shinylive-vs-traditional-shiny-full-comparison",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "Shinylive vs Traditional Shiny: Full Comparison",
+    "text": "Shinylive vs Traditional Shiny: Full Comparison\n\n\n\nDimension\nTraditional Shiny\nShinylive\n\n\n\n\nWhere R runs\nServer (your machine, shinyapps.io, Posit Connect)\nUser's browser (via WebAssembly)\n\n\nHosting requirement\nLive R process required\nAny static file host (GitHub Pages, Netlify, CDN)\n\n\nCost to host\nFree tier limited; paid plans for scale\nFree (static hosting is cheap or free)\n\n\nInitial load time\nFast (server already has R)\nSlower — browser must download webR runtime (~5–20 MB)\n\n\nComputation speed\nFast (server-grade hardware)\nSlower (WebAssembly has overhead vs native)\n\n\nData privacy\nData sent to server (must secure server)\nData never leaves the browser ✓\n\n\nPackage support\nAny CRAN package\nOnly packages compiled for Wasm (growing list)\n\n\nDatabase connections\nFull support (server can connect to any DB)\nNot supported (no network sockets in Wasm)\n\n\nFile system access\nFull server file system\nSandboxed virtual file system only\n\n\nScaling\nRequires server scaling / load balancing\nInfinite scale (each user runs their own instance)\n\n\nOffline use\nNo (requires server connection)\nPossible after initial load (assets can be cached)\n\n\nBest for\nProduction apps, large data, DB connections\nEducational content, portfolios, reports, prototypes"
+  },
+  {
+    "objectID": "shinylive-essay.html#strengths-of-shinylive",
+    "href": "shinylive-essay.html#strengths-of-shinylive",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "Strengths of Shinylive",
+    "text": "Strengths of Shinylive\n\n1. Zero infrastructure cost\nBecause Shinylive apps are static files, you can host them on GitHub Pages for free. There is no shinyapps.io monthly plan, no Posit Connect license, no server to maintain. For a student portfolio or teaching materials, this is a significant advantage.\n\n\n2. Perfect for embedding in Quarto documents\nShinylive is deeply integrated with Quarto. A single .qmd file can contain text, code, plots, and live interactive Shiny widgets — all rendering to a single static HTML file. This makes it ideal for lecture notes, tutorials, and reproducible reports that need interactivity.\n\n\n3. Data privacy by design\nBecause all computation happens locally in the browser, sensitive data never travels across the network to a server. For healthcare, government, or financial applications where data privacy is paramount, this is a structural advantage.\n\n\n4. Infinite scale\nEvery user runs their own isolated R instance in their own browser tab. There is no shared server, so ten users or ten thousand users make no difference to the host."
+  },
+  {
+    "objectID": "shinylive-essay.html#weaknesses-of-shinylive",
+    "href": "shinylive-essay.html#weaknesses-of-shinylive",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "Weaknesses of Shinylive",
+    "text": "Weaknesses of Shinylive\n\n1. Slow initial load\nThe first time a user opens a Shinylive app, their browser must download the webR runtime — roughly 5–20 MB depending on which packages are needed. On a fast connection this takes a few seconds; on a slow one it can feel sluggish. Traditional Shiny apps load almost instantly because R is already running on the server.\n\n\n2. Limited package support\nNot every R package can run in WebAssembly. Packages that depend on compiled C or Fortran code need to be specifically recompiled for Wasm. Posit maintains a growing list of supported packages, and popular ones like ggplot2, dplyr, and tidyr work — but if your app depends on a niche package, it may not be available yet.\n\n\n3. No server-side resources\nTraditional Shiny can connect to databases, read large files from disk, call external APIs, or run long-running background jobs. Shinylive can’t do any of this — WebAssembly runs in a sandboxed environment without access to network sockets or the host file system.\n\n\n4. Slower computation\nWebAssembly executes at roughly 50–80% of native speed for CPU-bound work. For simple interactive dashboards this is imperceptible, but for computationally heavy tasks (large matrix operations, bootstrap simulations, complex model fitting), the overhead becomes noticeable."
+  },
+  {
+    "objectID": "shinylive-essay.html#when-to-choose-which",
+    "href": "shinylive-essay.html#when-to-choose-which",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "When to Choose Which",
+    "text": "When to Choose Which\n\n\n\n\n\n\nTipQuick decision guide\n\n\n\nChoose Shinylive when: - You’re embedding interactivity in a Quarto report or teaching document - You want to host on GitHub Pages or Netlify for free - Your app uses common packages (ggplot2, dplyr, shiny) - Data is small and privacy matters - You want to share with anyone, no logins\nChoose Traditional Shiny when: - Your app connects to a database or reads large files - You need packages not yet available in webR - Your computation is heavy (fitting models, large data transformations) - You need production-grade uptime and monitoring - Your organization already has Posit Connect"
+  },
+  {
+    "objectID": "shinylive-essay.html#the-bigger-picture-webassembly-in-data-science",
+    "href": "shinylive-essay.html#the-bigger-picture-webassembly-in-data-science",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "The Bigger Picture: WebAssembly in Data Science",
+    "text": "The Bigger Picture: WebAssembly in Data Science\nShinylive is part of a broader trend: moving data science tools to the browser using WebAssembly. Pyodide brings Python to the browser the same way webR does for R. Observable’s Observable Plot and DuckDB-Wasm let you query millions of rows of data entirely client-side.\nThe trajectory is clear: increasingly, analytical work that once required a server will be executable locally. This changes how we think about sharing analyses — instead of spinning up infrastructure, we publish a URL.\nFor now, Shinylive sits at the intersection of these two worlds: it lowers the barrier to sharing interactive R work dramatically, at the cost of some performance and package coverage. As webR matures and more packages get compiled for Wasm, those limitations will shrink."
+  },
+  {
+    "objectID": "shinylive-essay.html#summary",
+    "href": "shinylive-essay.html#summary",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "Summary",
+    "text": "Summary\n\n\n\n\n\n\n\n\n\nTraditional Shiny\nShinylive\n\n\n\n\nCore idea\nR on a server, browser as display\nR in the browser via WebAssembly\n\n\nBest use case\nProduction apps, big data, DB\nPortfolios, teaching, reports\n\n\nHosting\nNeeds live R process\nAny static host\n\n\nPackages\nAll of CRAN\nWasm-compiled subset\n\n\nPrivacy\nData goes to server\nData stays in browser\n\n\n\nShinylive is not a replacement for traditional Shiny — it’s a complement. Together, they cover the full spectrum from quick embeddable widgets to production enterprise applications, all within the same familiar R and Shiny programming model."
+  },
+  {
+    "objectID": "shinylive-essay.html#references",
+    "href": "shinylive-essay.html#references",
+    "title": "Shinylive: Serverless Shiny in the Browser",
+    "section": "References",
+    "text": "References\n\nPosit. Shinylive: Shiny for Python and R, running in the browser. https://shiny.posit.co/py/docs/shinylive.html\nChang, W. & Wickham, H. Mastering Shiny. O’Reilly, 2021. https://mastering-shiny.org\nAllaire, J.J. et al. Quarto documentation. https://quarto.org/docs/interactive/shiny/\nwebR project. webR: R in the Browser. https://docs.r-wasm.org/webr/latest/\nMozilla Developer Network. WebAssembly. https://developer.mozilla.org/en-US/docs/WebAssembly"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Shayah LaCour",
+    "section": "",
+    "text": "👩🏽\n    \n    \n      \n      Marketing Analytics · Data Storytelling · BC Stats\n      \"Turning messy data into decisions that matter.\"\n      \n        View Dashboard →\n        About Me"
+  },
+  {
+    "objectID": "index.html#about-me",
+    "href": "index.html#about-me",
+    "title": "Shayah LaCour",
+    "section": "About Me",
+    "text": "About Me\n\n\n\nWho I Am\nI’m a graduate student in the Master of Science in Digital Marketing (MSDM) program, with a focus on analytics, data-driven strategy, and communicating insights to non-technical audiences. I work professionally at BC Stats, where I apply quantitative methods to real policy and program questions.\nI’m passionate about the intersection of marketing strategy and data science — specifically how digital behaviour data (web analytics, GA4, BigQuery) can be transformed into actionable decisions. My culminating experience project centres on measuring what actually drives conversion, not just what looks like it does.\nOutside of work and school, I’m building a running-and-bodyweight fitness routine, tinkering with Mac hardware, and slowly making my way through too many open browser tabs.\n\n\n\n  🎯\n  Career Aspiration\n  Marketing Data Analyst or Analytics Manager — bridging strategy, statistics, and storytelling in a data-forward organization."
+  },
+  {
+    "objectID": "index.html#skills",
+    "href": "index.html#skills",
+    "title": "Shayah LaCour",
+    "section": "Skills",
+    "text": "Skills\n\n  Analytics & Data\n  R / Quarto\n  BigQuery / SQL\n  GA4 / GTM\n  ggplot2\n  Arrow / DuckDB\n  Markov Attribution\n\n  Web & Visualization\n  HTML / CSS\n  Quarto Websites\n  Shiny\n  Reveal.js\n  GitHub Pages\n\n  Marketing\n  Multi-Touch Attribution\n  SEO / Paid Search\n  CRM Strategy\n  Conversion Optimization"
+  },
+  {
+    "objectID": "index.html#education",
+    "href": "index.html#education",
+    "title": "Shayah LaCour",
+    "section": "Education",
+    "text": "Education\n\n\n\n  2024 – Present\n  M.S. Digital Marketing (MSDM)\n  Graduate program · IBM6530 Analytics Track\n  Culminating Experience: Marketing Attribution Modelling for Trauma Resource Institute\n\n\n\n  Professional\n  Analyst, BC Stats\n  Applied quantitative research for government programs and policy evaluation. Data collection, reporting, and stakeholder communication."
+  },
+  {
+    "objectID": "index.html#this-website",
+    "href": "index.html#this-website",
+    "title": "Shayah LaCour",
+    "section": "This Website",
+    "text": "This Website\n\n\n\n  📊\n  Dashboard\n  Quarto static dashboard visualizing MSDM CEP data.\n\n\n\n  ⚡\n  Shiny Apps\n  A practical intro to building interactive Shiny apps in R.\n\n\n\n  🌐\n  Shinylive\n  How serverless Shiny changes the deployment equation.\n\n\n\n  💻\n  GitHub\n  Source code and project repositories."
+  }
+]

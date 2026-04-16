@@ -1,0 +1,157 @@
+---
+title: ""
+page-layout: full
+toc: false
+---
+
+```{=html}
+<section class="hero-section">
+  <div style="max-width:900px; margin:0 auto; display:flex; align-items:center; gap:3rem; flex-wrap:wrap;">
+    <div>
+      <div class="profile-placeholder">👩🏽</div>
+    </div>
+    <div style="flex:1; min-width:280px;">
+      <h1>Shayah LaCour</h1>
+      <p class="hero-subtitle">Marketing Analytics · Data Storytelling · BC Stats</p>
+      <p class="hero-tagline">"Turning messy data into decisions that matter."</p>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+        <a href="dashboard.qmd" style="background:#E8825A; color:white; padding:0.6rem 1.4rem; border-radius:2rem; font-weight:500; font-size:0.9rem; text-decoration:none;">View Dashboard →</a>
+        <a href="#about" style="background:rgba(255,255,255,0.15); color:white; padding:0.6rem 1.4rem; border-radius:2rem; font-weight:500; font-size:0.9rem; text-decoration:none; border:1px solid rgba(255,255,255,0.3);">About Me</a>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+::: {#about style="max-width:900px; margin:0 auto; padding:0 1rem;"}
+
+## About Me {.section-label}
+
+::: {.columns}
+::: {.column width="65%"}
+
+### Who I Am
+
+I'm a graduate student in the **Master of Science in Digital Marketing (MSDM)** program, with a focus on analytics, data-driven strategy, and communicating insights to non-technical audiences. I work professionally at **BC Stats**, where I apply quantitative methods to real policy and program questions.
+
+I'm passionate about the intersection of marketing strategy and data science — specifically how digital behaviour data (web analytics, GA4, BigQuery) can be transformed into actionable decisions. My culminating experience project centres on measuring what actually drives conversion, not just what *looks* like it does.
+
+Outside of work and school, I'm building a running-and-bodyweight fitness routine, tinkering with Mac hardware, and slowly making my way through too many open browser tabs.
+
+:::
+::: {.column width="35%"}
+
+```{=html}
+<div class="info-card" style="text-align:center;">
+  <div class="card-icon">🎯</div>
+  <h3>Career Aspiration</h3>
+  <p style="font-size:0.92rem; color:#555;">Marketing Data Analyst or Analytics Manager — bridging strategy, statistics, and storytelling in a data-forward organization.</p>
+</div>
+```
+
+:::
+:::
+
+---
+
+## Skills {.section-label}
+
+```{=html}
+<div style="margin-bottom:2rem;">
+  <p class="section-label">Analytics & Data</p>
+  <span class="skill-badge accent">R / Quarto</span>
+  <span class="skill-badge accent">BigQuery / SQL</span>
+  <span class="skill-badge accent">GA4 / GTM</span>
+  <span class="skill-badge accent">ggplot2</span>
+  <span class="skill-badge accent">Arrow / DuckDB</span>
+  <span class="skill-badge accent">Markov Attribution</span>
+
+  <p class="section-label" style="margin-top:1rem;">Web & Visualization</p>
+  <span class="skill-badge">HTML / CSS</span>
+  <span class="skill-badge">Quarto Websites</span>
+  <span class="skill-badge">Shiny</span>
+  <span class="skill-badge">Reveal.js</span>
+  <span class="skill-badge">GitHub Pages</span>
+
+  <p class="section-label" style="margin-top:1rem;">Marketing</p>
+  <span class="skill-badge">Multi-Touch Attribution</span>
+  <span class="skill-badge">SEO / Paid Search</span>
+  <span class="skill-badge">CRM Strategy</span>
+  <span class="skill-badge">Conversion Optimization</span>
+</div>
+```
+
+---
+
+## Education {.section-label}
+
+::: {.columns}
+::: {.column width="50%"}
+
+```{=html}
+<div class="timeline-item">
+  <div class="year">2024 – Present</div>
+  <h4>M.S. Digital Marketing (MSDM)</h4>
+  <p>Graduate program · IBM6530 Analytics Track<br>
+  <em>Culminating Experience: Marketing Attribution Modelling for Trauma Resource Institute</em></p>
+</div>
+```
+
+:::
+::: {.column width="50%"}
+
+```{=html}
+<div class="timeline-item">
+  <div class="year">Professional</div>
+  <h4>Analyst, BC Stats</h4>
+  <p>Applied quantitative research for government programs and policy evaluation. Data collection, reporting, and stakeholder communication.</p>
+</div>
+```
+
+:::
+:::
+
+---
+
+## This Website {.section-label}
+
+::: {.columns}
+::: {.column width="25%"}
+```{=html}
+<div class="info-card" style="text-align:center;">
+  <div class="card-icon">📊</div>
+  <h3><a href="dashboard.qmd" style="text-decoration:none; color:inherit;">Dashboard</a></h3>
+  <p style="font-size:0.88rem; color:#666;">Quarto static dashboard visualizing MSDM CEP data.</p>
+</div>
+```
+:::
+::: {.column width="25%"}
+```{=html}
+<div class="info-card" style="text-align:center;">
+  <div class="card-icon">⚡</div>
+  <h3><a href="shiny-essay.qmd" style="text-decoration:none; color:inherit;">Shiny Apps</a></h3>
+  <p style="font-size:0.88rem; color:#666;">A practical intro to building interactive Shiny apps in R.</p>
+</div>
+```
+:::
+::: {.column width="25%"}
+```{=html}
+<div class="info-card" style="text-align:center;">
+  <div class="card-icon">🌐</div>
+  <h3><a href="shinylive-essay.qmd" style="text-decoration:none; color:inherit;">Shinylive</a></h3>
+  <p style="font-size:0.88rem; color:#666;">How serverless Shiny changes the deployment equation.</p>
+</div>
+```
+:::
+::: {.column width="25%"}
+```{=html}
+<div class="info-card" style="text-align:center;">
+  <div class="card-icon">💻</div>
+  <h3><a href="https://github.com/slacour2319" target="_blank" style="text-decoration:none; color:inherit;">GitHub</a></h3>
+  <p style="font-size:0.88rem; color:#666;">Source code and project repositories.</p>
+</div>
+```
+:::
+:::
+
+:::

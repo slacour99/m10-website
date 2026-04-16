@@ -1,0 +1,314 @@
+---
+title: "Building Interactive Apps with Shiny"
+subtitle: "A practical introduction for analysts who already know R"
+author: "Shayah LaCour"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+    code-fold: false
+execute:
+  echo: true
+  eval: false
+  warning: false
+---
+
+```{=html}
+<div class="essay-header">
+  <h1>⚡ Building Interactive Apps with Shiny</h1>
+  <p>A practical lecture note for analysts ready to move beyond static reports</p>
+</div>
+```
+
+## What is Shiny?
+
+If you've ever finished an R analysis and thought *"I wish my manager could just drag a slider and see this update"* — that's exactly what **Shiny** solves.
+
+Shiny is an R package developed by Posit (formerly RStudio) that lets you turn ordinary R code into a fully interactive web application — without writing a single line of JavaScript, HTML, or CSS (unless you want to). Your colleague can open a URL in a browser, adjust inputs, and see outputs update in real time, all powered by R running on a server behind the scenes.
+
+::: {.callout-note}
+## The core idea in one sentence
+Shiny wraps R in a reactive framework: when an **input** changes (a slider, a dropdown, a text box), any **output** that depends on it automatically re-runs and updates.
+:::
+
+---
+
+## The Two-Part Structure
+
+Every Shiny app has exactly two logical pieces:
+
+| Part | What it does | Where it lives |
+|---|---|---|
+| **UI** (`ui`) | Defines the layout and controls the user sees | `ui.R` or the `ui` object |
+| **Server** (`server`) | Contains the R code that produces outputs | `server.R` or the `server` function |
+
+You can write these in two separate files (`ui.R` + `server.R`) or in a single `app.R` file. For learning purposes, a single file is easiest.
+
+---
+
+## Your First Shiny App (10 Lines)
+
+Here is the smallest working Shiny app. It takes a number from a slider and shows its square root.
+
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  sliderInput("n", "Pick a number", min = 1, max = 100, value = 25),
+  textOutput("result")
+)
+
+server <- function(input, output) {
+  output$result <- renderText({
+    paste("Square root of", input$n, "is", round(sqrt(input$n), 3))
+  })
+}
+
+shinyApp(ui, server)
+```
+
+::: {.callout-tip}
+## Try it yourself
+Paste this into RStudio and click **Run App**. You'll see a slider and a line of text. Drag the slider — notice the text updates instantly. That instant update is Shiny's reactive system doing its job.
+:::
+
+---
+
+## Understanding Reactivity
+
+Reactivity is what makes Shiny feel alive. The rule is simple:
+
+> **Any output that reads `input$x` will automatically re-run whenever `input$x` changes.**
+
+You don't call a refresh function. You don't write event listeners. Shiny tracks the dependency for you.
+
+### The reactive graph
+
+```
+[sliderInput: n]  ──────►  [renderText: result]
+```
+
+If you had two outputs both reading `input$n`, they would both re-run when the slider moves. If you had an output that reads `input$a` and `input$b`, it re-runs when *either* changes.
+
+### `reactive()` — sharing computed values
+
+If multiple outputs need the same intermediate computation, don't repeat the code. Wrap it in `reactive()`:
+
+```{r}
+server <- function(input, output) {
+  
+  # Computed once, shared by multiple outputs
+  filtered_data <- reactive({
+    mtcars[mtcars$cyl == input$cyl, ]
+  })
+  
+  output$plot  <- renderPlot({ plot(filtered_data()$wt, filtered_data()$mpg) })
+  output$table <- renderTable({ filtered_data() })
+}
+```
+
+Note: you call a reactive expression like a function — `filtered_data()` — with parentheses.
+
+---
+
+## Key UI Components
+
+Shiny has built-in input and output widgets for almost everything you need.
+
+### Inputs
+
+```{r}
+# Numeric input
+sliderInput("year", "Select year:", min = 2018, max = 2024, value = 2022)
+
+# Dropdown
+selectInput("channel", "Channel:", choices = c("Mobile", "Paid Search", "Affiliate", "Social Media"))
+
+# Checkbox group
+checkboxGroupInput("methods", "Attribution methods:",
+                   choices = c("First Touch", "Last Touch", "Markov"),
+                   selected = "Markov")
+
+# Date range
+dateRangeInput("dates", "Date range:",
+               start = "2024-01-01", end = Sys.Date())
+```
+
+### Outputs
+
+```{r}
+# In the UI: declare where each output goes
+plotOutput("my_chart")
+tableOutput("my_table")
+textOutput("my_text")
+verbatimTextOutput("my_code_output")
+
+# In the server: produce each output
+output$my_chart <- renderPlot({ ... })
+output$my_table <- renderTable({ ... })
+output$my_text  <- renderText({ ... })
+```
+
+---
+
+## A More Realistic Example: Attribution Explorer
+
+Here is a Shiny app closer to something you might actually use — an interactive attribution comparison tool:
+
+```{r}
+library(shiny)
+library(ggplot2)
+library(dplyr)
+
+# Data
+attr_data <- data.frame(
+  channel = rep(c("Mobile", "Paid Search", "Affiliate", "Social Media"), 3),
+  method  = rep(c("First Touch", "Last Touch", "Markov"), each = 4),
+  credits = c(21, 34, 17, 10,   # first touch
+              26, 15, 18, 8,    # last touch
+              21, 20, 20, 21)   # markov
+)
+
+ui <- fluidPage(
+  titlePanel("Attribution Model Explorer"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      checkboxGroupInput(
+        "methods",
+        "Select attribution models:",
+        choices  = unique(attr_data$method),
+        selected = unique(attr_data$method)
+      ),
+      hr(),
+      p("Adjust which models to display and compare how each model assigns
+        credit to the four marketing channels.")
+    ),
+    
+    mainPanel(
+      plotOutput("attr_chart", height = "400px"),
+      hr(),
+      tableOutput("attr_table")
+    )
+  )
+)
+
+server <- function(input, output) {
+  
+  filtered <- reactive({
+    attr_data |> filter(method %in% input$methods)
+  })
+  
+  output$attr_chart <- renderPlot({
+    ggplot(filtered(), aes(x = channel, y = credits, fill = method)) +
+      geom_col(position = "dodge", width = 0.65) +
+      scale_fill_brewer(palette = "Set2") +
+      labs(title = "Conversion Credits by Channel and Model",
+           x = NULL, y = "Credits", fill = "Model") +
+      theme_minimal(base_size = 14)
+  })
+  
+  output$attr_table <- renderTable({
+    filtered() |>
+      tidyr::pivot_wider(names_from = method, values_from = credits)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+---
+
+## Layout Options
+
+Shiny gives you several layout options to structure more complex apps.
+
+### `sidebarLayout()` — most common
+Controls on the left, output on the right. Used in the example above.
+
+### `navbarPage()` — multi-tab apps
+```{r}
+ui <- navbarPage(
+  "My App",
+  tabPanel("Overview",   plotOutput("overview_plot")),
+  tabPanel("Data Table", tableOutput("data_table")),
+  tabPanel("About",      p("This app was built with Shiny."))
+)
+```
+
+### `fluidRow()` + `column()` — custom grids
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(4, wellPanel(sliderInput(...))),
+    column(8, plotOutput("chart"))
+  )
+)
+```
+
+---
+
+## How to Deploy a Shiny App
+
+A Shiny app requires a **live R process** to run. That means you can't just put the files on a web server like a static HTML page — you need somewhere R is actually executing.
+
+| Option | Cost | Difficulty | Best for |
+|---|---|---|---|
+| **shinyapps.io** (Posit) | Free tier available | Easy | Sharing with anyone |
+| **Posit Connect** | Paid (org license) | Medium | Internal enterprise use |
+| **Shiny Server** (self-hosted) | Free (server cost) | Hard | Full control |
+| **Docker + cloud** | Pay-as-you-go | Hard | Production scale |
+
+For class and portfolio purposes, **shinyapps.io** is the easiest path:
+
+```{r}
+# Install rsconnect and deploy
+install.packages("rsconnect")
+library(rsconnect)
+
+# Authenticate once (get token from shinyapps.io)
+rsconnect::setAccountInfo(name = "YOUR_ACCOUNT",
+                          token = "YOUR_TOKEN",
+                          secret = "YOUR_SECRET")
+
+# Deploy
+rsconnect::deployApp(appDir = "path/to/your/app/")
+```
+
+---
+
+## Common Mistakes (and How to Fix Them)
+
+::: {.callout-warning}
+### Mistake 1: Forgetting parentheses on reactive expressions
+`filtered_data` is a function — you must call it as `filtered_data()`.
+:::
+
+::: {.callout-warning}
+### Mistake 2: Putting heavy computation outside `reactive()`
+Code at the top level of `server` runs *once* at startup. If you need something to re-run when inputs change, it must be inside `reactive()`, `renderPlot()`, etc.
+:::
+
+::: {.callout-warning}
+### Mistake 3: Using `input$x` outside a reactive context
+You can only read input values inside `reactive()`, `render*()`, or `observe()`. Reading `input$x` directly in a regular function will throw an error.
+:::
+
+---
+
+## Summary
+
+Shiny lets you go from an R script to a shareable, interactive web app without leaving R. The mental model is:
+
+1. **UI** describes what the user sees and interacts with.
+2. **Server** contains the R logic that produces outputs.
+3. **Reactivity** connects them automatically — change an input, outputs update.
+
+For analysts already comfortable in R and ggplot2, Shiny is a natural next step. The learning curve is mostly about understanding reactivity, not about R itself.
+
+::: {.callout-note}
+## What comes next?
+In the next essay, we look at **Shinylive** — a way to run Shiny apps entirely in the browser, with no server required.
+:::
