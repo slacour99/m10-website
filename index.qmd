@@ -140,7 +140,7 @@ Outside of work and school, I'm working on my own social media platform on Tikto
 ```{=html}
 <div class="info-card" style="text-align:center;">
   <div class="card-icon">💻</div>
-  <h3><a href="https://github.com/slacour2319" target="_blank" style="text-decoration:none; color:inherit;">GitHub</a></h3>
+  <h3><a href="https://github.com/slacour99" target="_blank" style="text-decoration:none; color:inherit;">GitHub</a></h3>
   <p style="font-size:0.88rem; color:#666;">Source code and project repositories.</p>
 </div>
 ```
